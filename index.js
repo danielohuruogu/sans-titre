@@ -387,8 +387,8 @@ function bowlDynamics() {
 
 					// Optionally, swap or dampen velocities for a simple bounce effect
 					const tempVel = sphere.userData.velocity.clone()
-					sphere.userData.velocity.copy(other.userData.velocity).multiplyScalar(0.7)
-					other.userData.velocity.copy(tempVel).multiplyScalar(0.7)
+					sphere.userData.velocity.copy(other.userData.velocity).multiplyScalar(0.85)
+					other.userData.velocity.copy(tempVel).multiplyScalar(0.85)
 				}
 			}
 		}
