@@ -189,10 +189,10 @@ function initWater() {
 	heightmapVariable = gpuCompute.addVariable('heightmap', shaderChange.heightmap_frag, heightmap0)
 	gpuCompute.setVariableDependencies(heightmapVariable, [heightmapVariable])
 
-	heightmapVariable.material.uniforms[ 'mousePos' ] = { value: new THREE.Vector2(10000, 10000) }
-	heightmapVariable.material.uniforms[ 'mouseSize' ] = { value: 0.2 }
-	heightmapVariable.material.uniforms[ 'viscosity' ] = { value: 0.93 }
-	heightmapVariable.material.uniforms[ 'deep' ] = { value: 0.01 }
+	heightmapVariable.material.uniforms['mousePos'] = { value: new THREE.Vector2(10000, 10000) }
+	heightmapVariable.material.uniforms['mouseSize'] = { value: 0.2 }
+	heightmapVariable.material.uniforms['viscosity'] = { value: 0.93 }
+	heightmapVariable.material.uniforms['deep'] = { value: 0.01 }
 	heightmapVariable.material.defines.BOUNDS = BOUNDS.toFixed(1)
 
 	const error = gpuCompute.init()
@@ -356,7 +356,7 @@ function bowlDynamics() {
 				pos.z = limit - decal
 				sphere.userData.velocity.z *= -0.3
 			}
-			// duck orientation test
+			// bowl orientation test
 			const startNormal = new THREE.Vector3(pixels[ 1 ], 1, -pixels[2]).normalize()
 			const dir = startPos.sub(pos)
 			dir.y = 0
@@ -368,6 +368,29 @@ function bowlDynamics() {
 			tmpQuatZ.setFromUnitVectors(yAxis, startNormal)
 			tmpQuat.multiplyQuaternions(tmpQuatZ, tmpQuatX)
 			sphere.quaternion.slerp(tmpQuat, 0.017)
+
+			// some collision detection
+ 			const radius = 0.15 // half of scale (0.3) for each bowl
+			for (let j = i + 1; j < NUM_BOWLS; j++) {
+				const other = bowls[j]
+				if (!other) continue
+
+				const dist = sphere.position.distanceTo(other.position)
+				const minDist = radius * 4
+				if (dist < minDist) {
+					// Calculate direction to push bowls apart
+					const newDir = sphere.position.clone().sub(other.position).normalize()
+					const overlap = minDist - dist
+					// Move each bowl away from the other by half the overlap
+					sphere.position.addScaledVector(newDir, overlap / 2)
+					other.position.addScaledVector(newDir, -overlap / 2)
+
+					// Optionally, swap or dampen velocities for a simple bounce effect
+					const tempVel = sphere.userData.velocity.clone()
+					sphere.userData.velocity.copy(other.userData.velocity).multiplyScalar(0.7)
+					other.userData.velocity.copy(tempVel).multiplyScalar(0.7)
+				}
+			}
 		}
 	}
 }
