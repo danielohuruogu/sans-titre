@@ -143,7 +143,6 @@ async function init() {
 	renderer.setAnimationLoop(animate)
 }
 
-
 function initWater() {
 	const geometry = new THREE.PlaneGeometry(BOUNDS, BOUNDS, WIDTH - 1, WIDTH - 1)
 	const material = new WaterMaterial({
@@ -303,13 +302,14 @@ function createBowls() {
 		sphere.position.x = (Math.random() - 0.5) * BOUNDS * 0.7
 		sphere.position.z = (Math.random() - 0.5) * BOUNDS * 0.7
 		sphere.userData.velocity = new THREE.Vector3()
+		sphere.scale.set(0.3, 0.3, 0.3)
 		scene.add(sphere)
-		bowls[ i ] = sphere
+		bowls[i] = sphere
 	}
 }
 
-function duckDynamics() {
-	readWaterLevelShader.uniforms[ 'levelTexture' ].value = tmpHeightmap
+function bowlDynamics() {
+	readWaterLevelShader.uniforms['levelTexture'].value = tmpHeightmap
 
 	for (let i = 0; i < NUM_BOWLS; i++) {
 		const sphere = bowls[ i ]
@@ -318,7 +318,7 @@ function duckDynamics() {
 			// Read water level and orientation
 			const u = 0.5 * sphere.position.x / BOUNDS_HALF + 0.5
 			const v = 1 - (0.5 * sphere.position.z / BOUNDS_HALF + 0.5)
-			readWaterLevelShader.uniforms[ 'point1' ].value.set(u, v)
+			readWaterLevelShader.uniforms['point1'].value.set(u, v)
 			gpuCompute.doRenderTarget(readWaterLevelShader, readWaterLevelRenderTarget)
 
 			renderer.readRenderTargetPixels(readWaterLevelRenderTarget, 0, 0, 4, 1, readWaterLevelImage)
@@ -357,7 +357,7 @@ function duckDynamics() {
 				sphere.userData.velocity.z *= -0.3
 			}
 			// duck orientation test
-			const startNormal = new THREE.Vector3(pixels[ 1 ], 1, -pixels[ 2 ]).normalize()
+			const startNormal = new THREE.Vector3(pixels[ 1 ], 1, -pixels[2]).normalize()
 			const dir = startPos.sub(pos)
 			dir.y = 0
 			dir.normalize()
@@ -428,7 +428,7 @@ function render() {
 		// Do the gpu computation
 		gpuCompute.compute()
 		tmpHeightmap = gpuCompute.getCurrentRenderTarget(heightmapVariable).texture
-		if (bowlsEnabled) duckDynamics()
+		if (bowlsEnabled) bowlDynamics()
 
 		// Get compute output in custom uniform
 		if (waterMesh) waterMesh.material.heightmap = tmpHeightmap
