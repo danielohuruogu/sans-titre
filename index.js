@@ -61,6 +61,26 @@ const effectController = {
 
 init()
 
+const canvas = document.getElementById('canvas')
+const width = canvas.clientWidth
+const height = canvas.clientHeight
+
+// some colours
+const black = new THREE.Color(0x000000)
+const white = new THREE.Color(0xFFFFFF)
+
+function loadFile(filename) {
+	return new Promise((resolve, reject) => {
+		const loader = new THREE.FileLoader()
+
+		loader.load(filename, (data) => {
+			resolve(data)
+		}, undefined, (error) => {
+			reject(new Error(`Failed to load file: ${filename}, error: ${error}`))
+		})
+	})
+}
+
 async function init() {
 	container = document.createElement('div')
 	document.body.appendChild(container)
